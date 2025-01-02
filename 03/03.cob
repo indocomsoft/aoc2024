@@ -69,7 +69,7 @@
                  IF input-line(i:4) = "mul(" THEN
                    SET state-first-number TO TRUE
                    ADD 3 TO i
-                   COMPUTE start-index = i + 1
+                   ADD 1 TO i GIVING start-index
                  END-IF
                WHEN state-first-number
                  PERFORM HANDLE-STATE-FIRST-NUMBER
@@ -88,7 +88,7 @@
                      IF enabled = 'Y' THEN
                        SET state-first-number TO TRUE
                        ADD 3 TO i
-                       COMPUTE start-index = i + 1
+                       ADD 1 to i GIVING start-index
                      END-IF
                    WHEN input-line(i:4) = "do()"
                      MOVE 'Y' TO enabled
@@ -109,7 +109,7 @@
              MOVE input-line(start-index:(i - start-index + 1)) TO
                  first-number
              SET state-second-number TO TRUE
-             COMPUTE start-index = i + 1
+             ADD 1 to i GIVING start-index
            ELSE
              IF input-line(i:1) IS NOT NUMERIC THEN
                SET looking-for-prefix TO TRUE
@@ -121,8 +121,7 @@
              MOVE input-line(start-index:(i - start-index + 1)) TO
                  second-number
              SET looking-for-prefix TO TRUE
-             COMPUTE result = result +
-                 first-number * second-number
+             COMPUTE result = result + first-number * second-number
            ELSE
              IF input-line(i:1) IS NOT NUMERIC THEN
                SET looking-for-prefix TO TRUE
