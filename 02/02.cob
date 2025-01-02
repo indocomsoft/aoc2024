@@ -18,8 +18,15 @@
            05 number-count PIC 9(2).
            05 numbers-table PIC 9(2) OCCURS 1 TO 8 TIMES DEPENDING ON
                number-count.
+       01 number-container-without-one.
+           05 number-without-one-count PIC 9(2).
+           05 numbers-without-one-table PIC 9(2) OCCURS 1 TO 8 TIMES
+               DEPENDING ON number-count.
+       01 i PIC 9(2).
+       01 excluded-index PIC 9(2).
        01 result PIC 9(4) VALUE 0.
        01 result-display PIC Z(4).
+       01 result-with-one-bad PIC 9(4) VALUE 0.
        01 is-valid PIC X.
 
        PROCEDURE DIVISION.
@@ -35,6 +42,9 @@
          CLOSE input-file.
          MOVE result TO result-display.
          DISPLAY FUNCTION TRIM(result-display).
+         COMPUTE result = result + result-with-one-bad.
+         MOVE result TO result-display.
+         DISPLAY FUNCTION TRIM(result-display).
          STOP RUN.
 
        PARSE-LINE.
@@ -48,7 +58,32 @@
 
        CHECK-LINE.
          CALL 'is-report-valid' USING number-container, is-valid.
-         IF is-valid = "Y" THEN ADD 1 TO result.
+         IF is-valid = "Y" THEN
+           ADD 1 TO result
+         ELSE
+           PERFORM TRY-WITH-REMOVE-ONE-BAD
+         END-IF.
+
+       TRY-WITH-REMOVE-ONE-BAD.
+         COMPUTE number-without-one-count = number-count - 1.
+         PERFORM VARYING excluded-index FROM 1 BY 1
+             UNTIL excluded-index > number-count
+           PERFORM VARYING i FROM 1 BY 1
+               UNTIL i > number-count
+             IF i < excluded-index THEN
+               MOVE numbers-table(i) TO numbers-without-one-table(i)
+             END-IF
+             IF i > excluded-index THEN
+               MOVE numbers-table(i) TO numbers-without-one-table(i - 1)
+             END-IF
+           END-PERFORM
+           CALL 'is-report-valid' USING number-container-without-one,
+               is-valid
+           IF is-valid = "Y" THEN
+             ADD 1 TO result-with-one-bad
+             EXIT PERFORM
+           END-IF
+         END-PERFORM.
 
        IDENTIFICATION DIVISION.
        PROGRAM-ID. is-report-valid.
